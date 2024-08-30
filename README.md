@@ -1,43 +1,110 @@
-<<<<<<< HEAD
-# network-request-handler
-=======
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# Network Library
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages).
-
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages).
--->
-
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+A lightweight network library for Dart and Flutter, designed to handle asynchronous operations and network requests with robust error handling.
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+- **Asynchronous Request Execution**: Provides methods for executing asynchronous operations with detailed error handling.
+- **Network Requests**: Simplifies making network requests using Dio, handling various network-related exceptions.
 
-## Getting started
+## Dependencies
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+- [Dartz](https://pub.dev/packages/dartz): For functional programming utilities like `Either`.
+- [Dio](https://pub.dev/packages/dio): For making network requests and handling responses.
 
-## Usage
+## Setup
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
+Add the following dependencies to your `pubspec.yaml`:
 
-```dart
-const like = 'sample';
+```yaml
+dependencies:
+  dartz: ^0.10.1
+  dio: ^5.6.0
+dev_dependencies:
+  mocktail: ^1.0.4
 ```
 
-## Additional information
+## RequestExecuter
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
->>>>>>> f493407 (request handler)
+Handles asynchronous operations and maps exceptions to specific failure types.
+
+### Example Usage
+
+```dart
+import 'package:dartz/dartz.dart';
+import 'package:network/src/request_executer.dart';
+import 'package:network/src/failures.dart';
+
+void main() async {
+  final requestExecuter = RequestExecuter();
+
+  // Execute an async operation with error handling
+  final result = await requestExecuter.executeWithError<String>(
+    () async {
+      // Simulate async operation
+      return 'Success';
+    },
+  );
+
+  result.fold(
+    (failure) => print('Error: ${failure.title} - ${failure.message}'),
+    (data) => print('Data: $data'),
+  );
+
+  // Execute an async operation that returns void
+  try {
+    await requestExecuter.executeVoid(() async {});
+    print('Operation completed successfully');
+  } catch (e) {
+    if (e is Failure) {
+      print('Error: ${e.title} - ${e.message}');
+    } else {
+      print('Unknown error occurred');
+    }
+  }
+}
+```
+
+## NetworkService
+
+Simplifies network requests and handles network-related exceptions using Dio.
+
+### Example Usage
+
+```dart
+import 'package:dio/dio.dart';
+import 'package:network/src/network_service.dart';
+import 'package:network/src/exceptions.dart';
+
+void main() async {
+  final networkService = NetworkService();
+
+  // Example of making a GET request
+  try {
+    final response = await networkService.get('/example', queryParameters: {'key': 'value'});
+    print('Response data: ${response?.data}');
+  } catch (e) {
+    if (e is ConnectionTimeoutException) {
+      print('Connection Timeout Error: ${e.message}');
+    } else if (e is BadResponseException) {
+      print('Bad Response Error: ${e.message}');
+    } else {
+      print('An unexpected error occurred: $e');
+    }
+  }
+
+  // Example of making a POST request
+  try {
+    final response = await networkService.post('/submit', data: {'key': 'value'});
+    print('Response data: ${response?.data}');
+  } catch (e) {
+    if (e is ConnectionTimeoutException) {
+      print('Connection Timeout Error: ${e.message}');
+    } else if (e is BadResponseException) {
+      print('Bad Response Error: ${e.message}');
+    } else {
+      print('An unexpected error occurred: $e');
+    }
+  }
+}
+```
