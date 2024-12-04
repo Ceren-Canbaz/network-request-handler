@@ -1,4 +1,4 @@
-name: network
+name: network_request_handler
 description: "Network request helper"
 version: 0.0.1
 
